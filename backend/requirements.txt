@@ -1,0 +1,14 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+aiosqlite==0.20.0
+pydantic==2.10.3
+pydantic-settings==2.7.0
+python-multipart==0.0.20
+aiofiles==24.1.0
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+Pillow==11.0.0
+
+# Optional DeOldify (pip install after cloning https://github.com/jantic/DeOldify):
+# torch torchvision fastai

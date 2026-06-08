@@ -1,0 +1,4 @@
+# Install after: git clone https://github.com/jantic/DeOldify.git && download weights
+torch>=2.0
+torchvision>=0.15
+fastai>=1.0.60
