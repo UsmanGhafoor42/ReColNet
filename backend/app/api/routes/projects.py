@@ -1,6 +1,9 @@
+import re
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -89,6 +92,26 @@ async def reprocess(
     background_tasks.add_task(jobs.run_colorization_job, project_id)
     project = await _load_project(db, project_id)
     return ProjectDetailResponse.model_validate(project)
+
+
+@router.get("/{project_id}/download")
+async def download_colorized(project_id: int, db: AsyncSession = Depends(get_db)):
+    project = await _load_project(db, project_id)
+    if not project:
+        raise HTTPException(404, detail="Project not found")
+
+    colorized = next((m for m in project.media_files if m.file_type == FileType.COLORIZED), None)
+    if not colorized or not colorized.colorized_file:
+        raise HTTPException(404, detail="Colorized file not found")
+
+    path = storage.disk_path_from_url(colorized.colorized_file)
+    if not path.exists():
+        raise HTTPException(404, detail="Colorized file missing on disk")
+
+    suffix = Path(path.name).suffix or ".png"
+    safe_title = re.sub(r"[^a-zA-Z0-9_-]+", "_", project.title).strip("_") or f"project_{project_id}"
+    filename = f"{safe_title}-colorized{suffix}"
+    return FileResponse(path, filename=filename, media_type="application/octet-stream")
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)

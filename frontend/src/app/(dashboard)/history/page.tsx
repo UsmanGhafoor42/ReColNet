@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { Download, RefreshCw, Trash2 } from "lucide-react";
 
-import { api } from "@/lib/api";
+import { API_URL, api } from "@/lib/api";
 import { mediaUrl } from "@/lib/media";
 import type { Project, ProjectDetail } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import { Progress } from "@/components/ui/progress";
 export default function HistoryPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [detail, setDetail] = useState<ProjectDetail | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   function refresh() {
     api.projects.list().then(setProjects);
@@ -44,6 +46,24 @@ export default function HistoryPage() {
   const processing =
     detail?.status === "processing" || detail?.status === "pending";
 
+  async function downloadColorized() {
+    if (!detail) return;
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const a = document.createElement("a");
+      a.href = `${API_URL}/projects/${detail.id}/download`;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      setDownloadError("Download failed. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">History</h1>
@@ -55,18 +75,34 @@ export default function HistoryPage() {
             <div className="flex gap-2">
               <Badge>{detail.status}</Badge>
               {detail.status === "completed" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => api.projects.reprocess(detail.id).then(setDetail)}
-                >
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  Reprocess
-                </Button>
+                <>
+                  {colSrc && (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={downloadColorized}
+                      disabled={downloading}
+                    >
+                      <Download className="mr-1 h-3 w-3" />
+                      {downloading ? "Downloading..." : "Download"}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => api.projects.reprocess(detail.id).then(setDetail)}
+                  >
+                    <RefreshCw className="mr-1 h-3 w-3" />
+                    Reprocess
+                  </Button>
+                </>
               )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {downloadError && (
+              <p className="text-sm text-destructive">{downloadError}</p>
+            )}
             {processing && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Colorizing…</p>
