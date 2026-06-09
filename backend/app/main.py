@@ -9,11 +9,14 @@ from app.api.router import api_router
 from app.core.config import settings
 from app.core.database import Base, engine
 
+# Ensure mount targets exist at import time.
+# On Vercel, StaticFiles validates directory existence before lifespan runs.
+settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+settings.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    settings.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
