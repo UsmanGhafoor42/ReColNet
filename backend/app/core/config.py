@@ -31,6 +31,7 @@ class Settings(BaseSettings):
         "image/webp",
         "image/bmp",
         "image/tiff",
+        "image/avif",
     }
     ALLOWED_VIDEO_TYPES: set[str] = {
         "video/mp4",

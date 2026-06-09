@@ -1,12 +1,13 @@
 import shutil
 import uuid
+from io import BytesIO
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
 from app.core.config import settings
 
-IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff", ".tif"}
+IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff", ".tif", ".avif"}
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".avi"}
 
 
@@ -41,6 +42,26 @@ async def save_upload(project_id: int, file: UploadFile) -> tuple[str, Path, boo
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     if len(data) > max_bytes:
         raise HTTPException(413, detail=f"File exceeds {settings.MAX_UPLOAD_SIZE_MB}MB")
+
+    # Normalize AVIF uploads to PNG to avoid downstream decoder/runtime issues.
+    if is_image and (ext == ".avif" or content_type == "image/avif"):
+        try:
+            from PIL import Image
+            import pillow_avif  # noqa: F401
+
+            img = Image.open(BytesIO(data)).convert("RGB")
+            out = BytesIO()
+            img.save(out, format="PNG")
+            data = out.getvalue()
+            ext = ".png"
+        except Exception as exc:
+            raise HTTPException(
+                400,
+                detail=(
+                    "AVIF file could not be decoded. "
+                    "Please upload PNG/JPG/WebP, or re-export this AVIF."
+                ),
+            ) from exc
 
     folder = project_dir(project_id)
     name = f"original{ext}"
