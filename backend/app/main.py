@@ -12,7 +12,11 @@ from app.core.database import Base, engine
 # Ensure mount targets exist at import time.
 # On Vercel, StaticFiles validates directory existence before lifespan runs.
 settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-settings.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    settings.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+except PermissionError:
+    # Models are optional at import-time; endpoints can still boot.
+    pass
 
 
 @asynccontextmanager

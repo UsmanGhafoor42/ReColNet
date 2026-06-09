@@ -14,7 +14,8 @@
   ],
   "env": {
     "DATABASE_URL": "sqlite+aiosqlite:////tmp/recolnet.db",
-    "UPLOAD_DIR": "/tmp/uploads"
+    "UPLOAD_DIR": "/tmp/uploads",
+    "MODELS_DIR": "/tmp/models"
   }
 }
 

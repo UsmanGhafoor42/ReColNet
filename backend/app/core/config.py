@@ -1,9 +1,14 @@
+import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _ROOT = Path(__file__).resolve().parents[2]
 _DB = _ROOT / "recolnet.db"
+_ON_VERCEL = os.getenv("VERCEL") == "1"
+_UPLOAD_DEFAULT = Path("/tmp/uploads") if _ON_VERCEL else _ROOT / "uploads"
+_MODELS_DEFAULT = Path("/tmp/models") if _ON_VERCEL else _ROOT / "models"
+_DB_DEFAULT = "sqlite+aiosqlite:////tmp/recolnet.db" if _ON_VERCEL else f"sqlite+aiosqlite:///{_DB}"
 
 
 class Settings(BaseSettings):
@@ -12,11 +17,11 @@ class Settings(BaseSettings):
     APP_NAME: str = "ReColNet API"
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = False
-    DATABASE_URL: str = f"sqlite+aiosqlite:///{_DB}"
+    DATABASE_URL: str = _DB_DEFAULT
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
-    UPLOAD_DIR: Path = _ROOT / "uploads"
-    MODELS_DIR: Path = _ROOT / "models"
+    UPLOAD_DIR: Path = _UPLOAD_DEFAULT
+    MODELS_DIR: Path = _MODELS_DEFAULT
     MEDIA_URL_PREFIX: str = "/media"
     MAX_UPLOAD_SIZE_MB: int = 50
 
