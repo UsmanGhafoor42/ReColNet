@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -8,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.database import Base, engine
+
+logger = logging.getLogger(__name__)
 
 # Ensure mount targets exist at import time.
 # On Vercel, StaticFiles validates directory existence before lifespan runs.
@@ -21,10 +24,18 @@ except PermissionError:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as exc:
+        # Do not crash cold-start on serverless if DB init fails.
+        # API routes depending on DB will still return errors, but health can respond.
+        logger.exception("Database initialization failed during startup: %s", exc)
     yield
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
