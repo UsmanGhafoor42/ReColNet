@@ -2,35 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { History, LayoutDashboard, Palette, Shield, Upload } from "lucide-react";
+import Image from "next/image";
 
+import { dashboardLinks } from "@/components/layout/dashboard-links";
 import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/upload", label: "Upload", icon: Upload },
-  { href: "/history", label: "History", icon: History },
-  { href: "/admin", label: "Admin", icon: Shield },
-];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-card/50 p-4">
-      <Link href="/" className="mb-8 flex items-center gap-2 px-2 font-semibold">
-        <Palette className="h-5 w-5 text-primary" />
-        ReColNet
+    <aside className="hidden w-64 shrink-0 border-r border-border/60 bg-card/60 px-4 py-5 md:flex md:flex-col">
+      <Link href="/" className="mb-8 flex items-center gap-3 px-2">
+        <Image
+          src="/Recolnet%20Logo/Recolnet_Logo.png"
+          alt="ReColNet"
+          width={126}
+          height={34}
+        />
       </Link>
       <nav className="flex flex-col gap-1">
-        {links.map(({ href, label, icon: Icon }) => (
+        {dashboardLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
               pathname === href
-                ? "bg-primary/15 text-primary font-medium"
-                : "text-muted-foreground hover:bg-muted"
+                ? "bg-primary/15 text-primary font-semibold"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <Icon className="h-4 w-4" />

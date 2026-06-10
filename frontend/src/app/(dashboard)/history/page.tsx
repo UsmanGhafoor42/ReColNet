@@ -66,13 +66,18 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">History</h1>
+      <div className="rounded-2xl border border-border/70 bg-card/70 p-6">
+        <h1 className="text-2xl font-bold sm:text-3xl">History</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Review completed jobs, compare outputs, and download results.
+        </p>
+      </div>
 
       {detail && (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{detail.title}</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Badge>{detail.status}</Badge>
               {detail.status === "completed" && (
                 <>
@@ -82,6 +87,7 @@ export default function HistoryPage() {
                       variant="default"
                       onClick={downloadColorized}
                       disabled={downloading}
+                      className="rounded-full"
                     >
                       <Download className="mr-1 h-3 w-3" />
                       {downloading ? "Downloading..." : "Download"}
@@ -90,6 +96,7 @@ export default function HistoryPage() {
                   <Button
                     size="sm"
                     variant="outline"
+                    className="rounded-full"
                     onClick={() => api.projects.reprocess(detail.id).then(setDetail)}
                   >
                     <RefreshCw className="mr-1 h-3 w-3" />
@@ -137,10 +144,10 @@ export default function HistoryPage() {
         </Card>
       )}
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardContent className="pt-6 divide-y">
           {projects.map((p) => (
-            <div key={p.id} className="flex justify-between py-3">
+            <div key={p.id} className="flex flex-wrap justify-between gap-3 py-3">
               <button
                 type="button"
                 className="text-left hover:text-primary"
@@ -148,7 +155,7 @@ export default function HistoryPage() {
               >
                 {p.title} · {new Date(p.created_at).toLocaleString()}
               </button>
-              <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-2">
                 <Badge variant="outline">{p.status}</Badge>
                 <Button
                   variant="ghost"

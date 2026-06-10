@@ -22,20 +22,25 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card><CardHeader><CardTitle className="text-3xl">{projects.length}</CardTitle><p className="text-sm text-muted-foreground">Projects</p></CardHeader></Card>
-        <Card><CardHeader><CardTitle className="text-3xl">{done}</CardTitle><p className="text-sm text-muted-foreground">Completed</p></CardHeader></Card>
-        <Card><CardHeader><CardTitle className="text-3xl">{projects.length - done}</CardTitle><p className="text-sm text-muted-foreground">In progress</p></CardHeader></Card>
+      <div className="rounded-2xl border border-border/70 bg-card/70 p-6">
+        <h1 className="text-2xl font-bold sm:text-3xl">Dashboard Overview</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Monitor project volume, completion rates, and recent colorization jobs.
+        </p>
       </div>
-      <Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">Projects</p><CardTitle className="text-3xl">{projects.length}</CardTitle></CardHeader></Card>
+        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">Completed</p><CardTitle className="text-3xl">{done}</CardTitle></CardHeader></Card>
+        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">In progress</p><CardTitle className="text-3xl">{projects.length - done}</CardTitle></CardHeader></Card>
+      </div>
+      <Card className="rounded-2xl">
         <CardHeader className="flex flex-row justify-between">
           <CardTitle>Recent</CardTitle>
-          <Link href="/upload" className={cn(buttonVariants())}><Upload className="mr-2 h-4 w-4 inline" />Upload</Link>
+          <Link href="/upload" className={cn(buttonVariants(), "rounded-full")}><Upload className="mr-2 inline h-4 w-4" />Upload</Link>
         </CardHeader>
         <CardContent>
           {projects.slice(0, 5).map((p) => (
-            <div key={p.id} className="flex justify-between py-2 border-b last:border-0">
+            <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-3 last:border-0">
               <span>{p.title}</span>
               <Badge variant="outline">{p.status}</Badge>
             </div>

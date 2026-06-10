@@ -49,27 +49,34 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      <h1 className="text-2xl font-bold">Upload — free, no account</h1>
-      <Card>
-        <CardHeader><CardTitle>Grayscale {mediaType}</CardTitle></CardHeader>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="rounded-2xl border border-border/70 bg-card/70 p-6">
+        <h1 className="text-2xl font-bold sm:text-3xl">Upload Media</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Upload grayscale image or video to start AI colorization.
+        </p>
+      </div>
+      <Card className="rounded-2xl">
+        <CardHeader><CardTitle>Source: {mediaType === "image" ? "Image" : "Video"}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Button variant={mediaType === "image" ? "default" : "outline"} onClick={() => setMediaType("image")}>Image</Button>
-            <Button variant={mediaType === "video" ? "default" : "outline"} onClick={() => setMediaType("video")}>Video</Button>
+            <Button className="rounded-full" variant={mediaType === "image" ? "default" : "outline"} onClick={() => setMediaType("image")}>Image</Button>
+            <Button className="rounded-full" variant={mediaType === "video" ? "default" : "outline"} onClick={() => setMediaType("video")}>Video</Button>
           </div>
           <div
-            className="flex flex-col items-center rounded-xl border border-dashed p-12"
+            className="flex flex-col items-center rounded-2xl border border-dashed border-border/80 bg-muted/30 p-8 sm:p-12"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setFile(f); setTitle(f.name.replace(/\.[^.]+$/, "")); } }}
           >
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+            <p className="mb-3 text-xs text-muted-foreground">Drag and drop or browse a file</p>
             <Input type="file" accept={mediaType === "image" ? "image/*" : "video/*"} onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFile(f); setTitle(f.name.replace(/\.[^.]+$/, "")); } }} />
           </div>
+          {file && <p className="text-xs text-muted-foreground">Selected: {file.name}</p>}
           <div><Label>Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} /></div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           {loading && <Progress value={progress} />}
-          <Button className="w-full" disabled={!file || !title || loading} onClick={submit}>
+          <Button className="w-full rounded-full" disabled={!file || !title || loading} onClick={submit}>
             {loading ? "Processing…" : "Colorize"}
           </Button>
         </CardContent>

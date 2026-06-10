@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "ReColNet – AI Image & Video Colorization",
   description:
     "Universal AI-powered colorization studio with explainable results for images and video.",
+  icons: {
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    shortcut: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
