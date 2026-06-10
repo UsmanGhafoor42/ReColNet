@@ -26,6 +26,10 @@ models/
 *.pt
 *.pth
 
+# Keep backend SQLAlchemy app models tracked (needed for Vercel imports)
+!backend/app/models/
+!backend/app/models/**
+
 # IDE & OS
 .DS_Store
 .idea/
