@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import asyncio
 import logging
 from pathlib import Path
 
@@ -22,6 +23,15 @@ except PermissionError:
     pass
 
 
+async def _ensure_models() -> None:
+    from app.services.model_download import download_models, models_ready
+
+    if models_ready():
+        return
+    logger.info("OpenCV models missing — downloading to %s", settings.MODELS_DIR)
+    await asyncio.to_thread(download_models, settings.MODELS_DIR)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
@@ -31,6 +41,10 @@ async def lifespan(app: FastAPI):
         # Do not crash cold-start on serverless if DB init fails.
         # API routes depending on DB will still return errors, but health can respond.
         logger.exception("Database initialization failed during startup: %s", exc)
+    try:
+        await _ensure_models()
+    except Exception as exc:
+        logger.exception("Model download failed during startup: %s", exc)
     yield
     try:
         await engine.dispose()

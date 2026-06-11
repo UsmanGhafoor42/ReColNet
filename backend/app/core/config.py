@@ -6,9 +6,30 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _ROOT = Path(__file__).resolve().parents[2]
 _DB = _ROOT / "recolnet.db"
 _ON_VERCEL = os.getenv("VERCEL") == "1"
-_UPLOAD_DEFAULT = Path("/tmp/uploads") if _ON_VERCEL else _ROOT / "uploads"
-_MODELS_DEFAULT = Path("/tmp/models") if _ON_VERCEL else _ROOT / "models"
-_DB_DEFAULT = "sqlite+aiosqlite:////tmp/recolnet.db" if _ON_VERCEL else f"sqlite+aiosqlite:///{_DB}"
+_ON_RAILWAY = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY"))
+
+
+def _data_root() -> Path:
+    if os.getenv("DATA_DIR"):
+        return Path(os.getenv("DATA_DIR"))
+    if _ON_RAILWAY:
+        return Path("/data")
+    return _ROOT
+
+
+if _ON_VERCEL:
+    _UPLOAD_DEFAULT = Path("/tmp/uploads")
+    _MODELS_DEFAULT = Path("/tmp/models")
+    _DB_DEFAULT = "sqlite+aiosqlite:////tmp/recolnet.db"
+elif _ON_RAILWAY or os.getenv("DATA_DIR"):
+    _data = _data_root()
+    _UPLOAD_DEFAULT = _data / "uploads"
+    _MODELS_DEFAULT = _data / "models"
+    _DB_DEFAULT = f"sqlite+aiosqlite:///{_data / 'recolnet.db'}"
+else:
+    _UPLOAD_DEFAULT = _ROOT / "uploads"
+    _MODELS_DEFAULT = _ROOT / "models"
+    _DB_DEFAULT = f"sqlite+aiosqlite:///{_DB}"
 
 
 class Settings(BaseSettings):

@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+uploads
+models
+recolnet.db
+.env
+.env.*
+!.env.example
+api
+vercel.json
+.git
