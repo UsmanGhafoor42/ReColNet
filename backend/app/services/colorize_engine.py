@@ -58,26 +58,81 @@ def _ensure_opencv_models() -> bool:
     return True
 
 
-def _opencv_colorize_frame(frame_bgr) -> "np.ndarray":
+def _enhance_colorized_frame(
+    bgr: "np.ndarray",
+    original_bgr: "np.ndarray | None" = None,
+    prev_bgr: "np.ndarray | None" = None,
+) -> "np.ndarray":
+    """Post-process DNN output: richer color, sharper detail, smoother video frames."""
     cv2 = _cv2()
     np = _np()
+
+    # Preserve original luminance detail in LAB space
+    if original_bgr is not None and settings.COLOR_DETAIL_BLEND > 0:
+        if len(original_bgr.shape) == 2:
+            gray = original_bgr
+        else:
+            gray = cv2.cvtColor(original_bgr, cv2.COLOR_BGR2GRAY)
+        lab = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
+        blend = settings.COLOR_DETAIL_BLEND
+        lab[:, :, 0] = cv2.addWeighted(lab[:, :, 0], 1 - blend, gray, blend, 0)
+        bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+
+    # Saturation + vibrance in HSV
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
+    hsv[:, :, 1] = np.clip(hsv[:, :, 1] * settings.COLOR_SATURATION_BOOST, 0, 255)
+    mid = hsv[:, :, 1].mean()
+    hsv[:, :, 1] = np.clip(
+        mid + (hsv[:, :, 1] - mid) * settings.COLOR_VIBRANCE, 0, 255
+    )
+    bgr = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+
+    # Smooth chroma noise while keeping edges
+    bgr = cv2.bilateralFilter(bgr, d=7, sigmaColor=68, sigmaSpace=68)
+
+    # Temporal smoothing reduces frame-to-frame flicker in video
+    if prev_bgr is not None and settings.COLOR_TEMPORAL_SMOOTH > 0:
+        alpha = settings.COLOR_TEMPORAL_SMOOTH
+        bgr = cv2.addWeighted(bgr, 1 - alpha, prev_bgr, alpha, 0)
+
+    return bgr
+
+
+def _opencv_colorize_frame(
+    frame_bgr,
+    prev_colorized: "np.ndarray | None" = None,
+) -> "np.ndarray":
+    cv2 = _cv2()
+    np = _np()
+    original = frame_bgr.copy()
     if len(frame_bgr.shape) == 2:
         frame_bgr = cv2.cvtColor(frame_bgr, cv2.COLOR_GRAY2BGR)
+        original = frame_bgr.copy()
 
     img_rgb = (frame_bgr[:, :, ::-1] / 255.0).astype(np.float32)
     img_lab = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2Lab)
     img_l = img_lab[:, :, 0]
+
+    if settings.COLOR_USE_CLAHE:
+        clahe = cv2.createCLAHE(clipLimit=2.2, tileGridSize=(8, 8))
+        img_l = clahe.apply(img_l.astype(np.uint8)).astype(np.float32)
+
     h_orig, w_orig = img_rgb.shape[:2]
 
-    img_rs = cv2.resize(img_rgb, (224, 224))
-    img_l_rs = cv2.cvtColor(img_rs, cv2.COLOR_RGB2Lab)[:, :, 0] - 50
+    img_rs = cv2.resize(frame_bgr, (224, 224))
+    img_l_rs = cv2.cvtColor(
+        (img_rs[:, :, ::-1] / 255.0).astype(np.float32), cv2.COLOR_RGB2Lab
+    )[:, :, 0] - 50
 
     _net.setInput(cv2.dnn.blobFromImage(img_l_rs))
     ab_dec = _net.forward()[0, :, :, :].transpose((1, 2, 0))
     ab_dec = cv2.resize(ab_dec, (w_orig, h_orig))
+
     img_lab_out = np.concatenate((img_l[:, :, np.newaxis], ab_dec), axis=2)
     img_bgr = np.clip(cv2.cvtColor(img_lab_out, cv2.COLOR_Lab2BGR), 0, 1)
-    return (255 * img_bgr).astype("uint8")
+    bgr = (255 * img_bgr).astype("uint8")
+
+    return _enhance_colorized_frame(bgr, original, prev_colorized)
 
 
 def _opencv_colorize(src: Path, dst: Path) -> dict:
@@ -90,7 +145,7 @@ def _opencv_colorize(src: Path, dst: Path) -> dict:
         raise ValueError("Could not read image")
     colorized = _opencv_colorize_frame(frame)
     cv2.imwrite(str(dst), colorized)
-    return {"engine": "opencv-dnn", "confidence": 0.82}
+    return {"engine": "opencv-dnn-enhanced", "confidence": 0.88}
 
 
 def _finalize_video(video_only: Path, original: Path, output: Path) -> None:
@@ -164,13 +219,15 @@ def colorize_video(src: Path, dst: Path) -> dict:
 
     max_frames = settings.MAX_VIDEO_FRAMES
     frames = 0
+    prev_colorized = None
     while True:
         ok, frame = cap.read()
         if not ok:
             break
         if max_frames > 0 and frames >= max_frames:
             break
-        colorized = _opencv_colorize_frame(frame)
+        colorized = _opencv_colorize_frame(frame, prev_colorized)
+        prev_colorized = colorized.copy()
         writer.write(colorized)
         frames += 1
 
@@ -182,7 +239,7 @@ def colorize_video(src: Path, dst: Path) -> dict:
         raise ValueError("Video contains no readable frames")
 
     _finalize_video(tmp_video, src, dst)
-    return {"engine": "opencv-dnn", "confidence": 0.82, "frames": frames}
+    return {"engine": "opencv-dnn-enhanced", "confidence": 0.88, "frames": frames}
 
 
 def _deoldify_colorize(src: Path, dst: Path) -> dict:

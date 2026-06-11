@@ -113,6 +113,10 @@ def _explanation(engine: str, is_video: bool, meta: dict) -> str:
         frames = meta.get("frames", 0)
         base = {
             "deoldify": "DeOldify colorized each frame with artistic scene-aware hues.",
+            "opencv-dnn-enhanced": (
+                f"Enhanced OpenCV pipeline colorized {frames} frames with CLAHE contrast, "
+                "LAB restoration, saturation boost, bilateral smoothing, and temporal stabilization."
+            ),
             "opencv-dnn": f"OpenCV DNN colorized {frames} frames with LAB channel restoration.",
             "fallback": "Basic per-frame enhancement applied; install models for full colorization.",
         }.get(engine, "Video colorization complete.")
@@ -120,6 +124,10 @@ def _explanation(engine: str, is_video: bool, meta: dict) -> str:
 
     return {
         "deoldify": "DeOldify applied artistic colorization with scene-aware hues.",
+        "opencv-dnn-enhanced": (
+            "Enhanced OpenCV pipeline with CLAHE contrast, LAB restoration, "
+            "saturation boost, and detail-preserving bilateral smoothing."
+        ),
         "opencv-dnn": "OpenCV DNN restored LAB color channels from luminance.",
         "fallback": "Basic enhancement applied; install models for full colorization.",
     }.get(engine, "Colorization complete.")

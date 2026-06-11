@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     DEOLDIFY_ARTISTIC: bool = True
     DEOLDIFY_RENDER_FACTOR: int = 35
 
+    # Enhanced colorization tuning
+    COLOR_SATURATION_BOOST: float = 1.38
+    COLOR_VIBRANCE: float = 1.12
+    COLOR_DETAIL_BLEND: float = 0.28
+    COLOR_TEMPORAL_SMOOTH: float = 0.22
+    COLOR_USE_CLAHE: bool = True
+
     ALLOWED_IMAGE_TYPES: set[str] = {
         "image/jpeg",
         "image/png",
