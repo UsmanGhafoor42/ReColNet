@@ -44,7 +44,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = _UPLOAD_DEFAULT
     MODELS_DIR: Path = _MODELS_DEFAULT
     MEDIA_URL_PREFIX: str = "/media"
-    MAX_UPLOAD_SIZE_MB: int = 50
+    MAX_UPLOAD_SIZE_MB: int = 100
+    MAX_VIDEO_FRAMES: int = 1800  # ~60s at 30fps; set 0 for unlimited
 
     # deoldify | opencv | auto (try DeOldify, else OpenCV)
     COLORIZE_ENGINE: str = "auto"

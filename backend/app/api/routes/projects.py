@@ -108,10 +108,20 @@ async def download_colorized(project_id: int, db: AsyncSession = Depends(get_db)
     if not path.exists():
         raise HTTPException(404, detail="Colorized file missing on disk")
 
-    suffix = Path(path.name).suffix or ".png"
+    suffix = Path(path.name).suffix.lower() or ".png"
     safe_title = re.sub(r"[^a-zA-Z0-9_-]+", "_", project.title).strip("_") or f"project_{project_id}"
     filename = f"{safe_title}-colorized{suffix}"
-    return FileResponse(path, filename=filename, media_type="application/octet-stream")
+
+    media_types = {
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".mov": "video/quicktime",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+    }
+    media_type = media_types.get(suffix, "application/octet-stream")
+    return FileResponse(path, filename=filename, media_type=media_type)
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)

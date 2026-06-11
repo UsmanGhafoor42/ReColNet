@@ -58,19 +58,13 @@ def _ensure_opencv_models() -> bool:
     return True
 
 
-def _opencv_colorize(src: Path, dst: Path) -> dict:
+def _opencv_colorize_frame(frame_bgr) -> "np.ndarray":
     cv2 = _cv2()
     np = _np()
-    if not _ensure_opencv_models():
-        raise RuntimeError("OpenCV models missing. Run: python scripts/download_models.py")
+    if len(frame_bgr.shape) == 2:
+        frame_bgr = cv2.cvtColor(frame_bgr, cv2.COLOR_GRAY2BGR)
 
-    frame = cv2.imread(str(src))
-    if frame is None:
-        raise ValueError("Could not read image")
-    if len(frame.shape) == 2:
-        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
-    img_rgb = (frame[:, :, ::-1] / 255.0).astype(np.float32)
+    img_rgb = (frame_bgr[:, :, ::-1] / 255.0).astype(np.float32)
     img_lab = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2Lab)
     img_l = img_lab[:, :, 0]
     h_orig, w_orig = img_rgb.shape[:2]
@@ -83,8 +77,112 @@ def _opencv_colorize(src: Path, dst: Path) -> dict:
     ab_dec = cv2.resize(ab_dec, (w_orig, h_orig))
     img_lab_out = np.concatenate((img_l[:, :, np.newaxis], ab_dec), axis=2)
     img_bgr = np.clip(cv2.cvtColor(img_lab_out, cv2.COLOR_Lab2BGR), 0, 1)
-    cv2.imwrite(str(dst), (255 * img_bgr).astype("uint8"))
+    return (255 * img_bgr).astype("uint8")
+
+
+def _opencv_colorize(src: Path, dst: Path) -> dict:
+    cv2 = _cv2()
+    if not _ensure_opencv_models():
+        raise RuntimeError("OpenCV models missing. Run: python scripts/download_models.py")
+
+    frame = cv2.imread(str(src))
+    if frame is None:
+        raise ValueError("Could not read image")
+    colorized = _opencv_colorize_frame(frame)
+    cv2.imwrite(str(dst), colorized)
     return {"engine": "opencv-dnn", "confidence": 0.82}
+
+
+def _finalize_video(video_only: Path, original: Path, output: Path) -> None:
+    """Re-encode to H.264 for browser playback and mux audio from the original."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("ffmpeg"):
+        logger.warning("ffmpeg not found — output may not play in all browsers")
+        video_only.replace(output)
+        return
+
+    try:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(video_only),
+                "-i",
+                str(original),
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "23",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0?",
+                "-shortest",
+                str(output),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        video_only.unlink(missing_ok=True)
+    except subprocess.CalledProcessError as exc:
+        logger.warning("ffmpeg finalize failed (%s), using raw output", exc.stderr)
+        video_only.replace(output)
+
+
+def colorize_video(src: Path, dst: Path) -> dict:
+    """Colorize every frame of a video and write an MP4 with optional audio."""
+    cv2 = _cv2()
+    if not _ensure_opencv_models():
+        raise RuntimeError("OpenCV models missing. Run: python scripts/download_models.py")
+
+    cap = cv2.VideoCapture(str(src))
+    if not cap.isOpened():
+        raise ValueError("Could not open video")
+
+    fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    if width <= 0 or height <= 0:
+        cap.release()
+        raise ValueError("Invalid video dimensions")
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    tmp_video = dst.with_suffix(".tmp.mp4")
+    writer = cv2.VideoWriter(str(tmp_video), fourcc, fps, (width, height))
+    if not writer.isOpened():
+        cap.release()
+        raise ValueError("Could not create output video writer")
+
+    max_frames = settings.MAX_VIDEO_FRAMES
+    frames = 0
+    while True:
+        ok, frame = cap.read()
+        if not ok:
+            break
+        if max_frames > 0 and frames >= max_frames:
+            break
+        colorized = _opencv_colorize_frame(frame)
+        writer.write(colorized)
+        frames += 1
+
+    cap.release()
+    writer.release()
+
+    if frames == 0:
+        tmp_video.unlink(missing_ok=True)
+        raise ValueError("Video contains no readable frames")
+
+    _finalize_video(tmp_video, src, dst)
+    return {"engine": "opencv-dnn", "confidence": 0.82, "frames": frames}
 
 
 def _deoldify_colorize(src: Path, dst: Path) -> dict:

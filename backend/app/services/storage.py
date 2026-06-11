@@ -70,8 +70,10 @@ async def save_upload(project_id: int, file: UploadFile) -> tuple[str, Path, boo
     return media_url(project_id, name), dest, is_video
 
 
-def colorized_path(project_id: int, source_ext: str = ".png") -> tuple[str, Path]:
-    name = f"colorized{source_ext if source_ext in {'.jpg', '.jpeg', '.png'} else '.png'}"
+def colorized_path(project_id: int, ext: str = ".png") -> tuple[str, Path]:
+    allowed = {".jpg", ".jpeg", ".png", ".mp4", ".webm", ".mov"}
+    ext = ext.lower() if ext.lower() in allowed else ".png"
+    name = f"colorized{ext}"
     path = project_dir(project_id) / name
     return media_url(project_id, name), path
 

@@ -45,22 +45,27 @@ async def run_colorization_job(project_id: int) -> None:
             if not original or not original.original_file:
                 raise ValueError("No original file")
 
+            # Drop previous colorized outputs (reprocess)
+            for mf in list(project.media_files):
+                if mf.file_type == FileType.COLORIZED:
+                    if mf.colorized_file:
+                        old = storage.disk_path_from_url(mf.colorized_file)
+                        if old.exists():
+                            old.unlink(missing_ok=True)
+                    await db.delete(mf)
+
             src = storage.disk_path_from_url(original.original_file)
             is_video = str(project.media_type) == "video" or getattr(
                 project.media_type, "value", ""
             ) == "video"
-            work_src = src
-            if is_video:
-                frame = src.parent / "_frame.jpg"
-                await asyncio.to_thread(
-                    colorize_engine.extract_video_frame, src, frame
-                )
-                work_src = frame
 
-            url, out_path = storage.colorized_path(project_id, ".png")
-            meta = await asyncio.to_thread(
-                colorize_engine.colorize_image, work_src, out_path
-            )
+            if is_video:
+                url, out_path = storage.colorized_path(project_id, ".mp4")
+                meta = await asyncio.to_thread(colorize_engine.colorize_video, src, out_path)
+            else:
+                url, out_path = storage.colorized_path(project_id, ".png")
+                meta = await asyncio.to_thread(colorize_engine.colorize_image, src, out_path)
+
             elapsed = time.perf_counter() - t0
 
             project.status = ProjectStatus.COMPLETED
@@ -82,7 +87,7 @@ async def run_colorization_job(project_id: int) -> None:
             db.add(
                 Explanation(
                     project_id=project_id,
-                    text_explanation=_explanation(meta["engine"], is_video),
+                    text_explanation=_explanation(meta["engine"], is_video, meta),
                 )
             )
             await db.commit()
@@ -103,12 +108,18 @@ async def run_colorization_job(project_id: int) -> None:
                 await db.commit()
 
 
-def _explanation(engine: str, is_video: bool) -> str:
-    base = {
+def _explanation(engine: str, is_video: bool, meta: dict) -> str:
+    if is_video:
+        frames = meta.get("frames", 0)
+        base = {
+            "deoldify": "DeOldify colorized each frame with artistic scene-aware hues.",
+            "opencv-dnn": f"OpenCV DNN colorized {frames} frames with LAB channel restoration.",
+            "fallback": "Basic per-frame enhancement applied; install models for full colorization.",
+        }.get(engine, "Video colorization complete.")
+        return base
+
+    return {
         "deoldify": "DeOldify applied artistic colorization with scene-aware hues.",
         "opencv-dnn": "OpenCV DNN restored LAB color channels from luminance.",
         "fallback": "Basic enhancement applied; install models for full colorization.",
     }.get(engine, "Colorization complete.")
-    if is_video:
-        base += " (first frame preview; full video pipeline coming soon.)"
-    return base

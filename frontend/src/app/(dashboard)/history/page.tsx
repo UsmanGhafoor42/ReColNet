@@ -35,16 +35,21 @@ export default function HistoryPage() {
         if (p.status === "completed" || p.status === "failed") refresh();
       });
     poll();
-    const t = setInterval(poll, 1500);
+    const t = setInterval(poll, 2000);
     return () => clearInterval(t);
   }, []);
 
+  const isVideo = detail?.media_type === "video";
   const original = detail?.media_files.find((m) => m.file_type === "original");
-  const colorized = detail?.media_files.find((m) => m.file_type === "colorized");
+  const colorized = detail?.media_files
+    .filter((m) => m.file_type === "colorized")
+    .at(-1);
   const origSrc = mediaUrl(original?.original_file ?? original?.colorized_file);
   const colSrc = mediaUrl(colorized?.colorized_file ?? colorized?.original_file);
   const processing =
     detail?.status === "processing" || detail?.status === "pending";
+  const aiResult = detail?.ai_results.at(-1);
+  const explanation = detail?.explanations.at(-1);
 
   async function downloadColorized() {
     if (!detail) return;
@@ -54,6 +59,7 @@ export default function HistoryPage() {
       const a = document.createElement("a");
       a.href = `${API_URL}/projects/${detail.id}/download`;
       a.rel = "noopener";
+      a.download = "";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -62,6 +68,41 @@ export default function HistoryPage() {
     } finally {
       setDownloading(false);
     }
+  }
+
+  function MediaPreview({
+    src,
+    label,
+    variant,
+  }: {
+    src: string;
+    label: string;
+    variant: "original" | "colorized";
+  }) {
+    const labelClass =
+      variant === "colorized" ? "text-primary" : "text-muted-foreground";
+    const borderClass =
+      variant === "colorized" ? "border-primary/30" : "border-border";
+
+    return (
+      <div>
+        <p className={`mb-2 text-sm ${labelClass}`}>{label}</p>
+        {isVideo ? (
+          <video
+            src={src}
+            controls
+            playsInline
+            className={`w-full rounded-lg border ${borderClass} bg-black`}
+          />
+        ) : (
+          <img
+            src={src}
+            alt={label}
+            className={`w-full rounded-lg border ${borderClass}`}
+          />
+        )}
+      </div>
+    );
   }
 
   return (
@@ -90,7 +131,11 @@ export default function HistoryPage() {
                       className="rounded-full"
                     >
                       <Download className="mr-1 h-3 w-3" />
-                      {downloading ? "Downloading..." : "Download"}
+                      {downloading
+                        ? "Downloading..."
+                        : isVideo
+                          ? "Download video"
+                          : "Download"}
                     </Button>
                   )}
                   <Button
@@ -112,32 +157,33 @@ export default function HistoryPage() {
             )}
             {processing && (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Colorizing…</p>
+                <p className="text-sm text-muted-foreground">
+                  {isVideo
+                    ? "Colorizing video… this may take a few minutes."
+                    : "Colorizing…"}
+                </p>
                 <Progress className="animate-pulse" value={60} />
               </div>
             )}
             {detail.status === "completed" && origSrc && colSrc && (
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="mb-2 text-sm text-muted-foreground">Original</p>
-                  <img src={origSrc} alt="Original" className="rounded-lg border w-full" />
-                </div>
-                <div>
-                  <p className="mb-2 text-sm text-primary">Colorized</p>
-                  <img src={colSrc} alt="Colorized" className="rounded-lg border border-primary/30 w-full" />
-                </div>
+                <MediaPreview src={origSrc} label="Original" variant="original" />
+                <MediaPreview src={colSrc} label="Colorized" variant="colorized" />
               </div>
             )}
-            {detail.ai_results[0] && (
+            {aiResult && (
               <p className="text-sm">
-                Model: {detail.ai_results[0].model_used} · Confidence:{" "}
-                {Math.round((detail.ai_results[0].confidence_score ?? 0) * 100)}% ·{" "}
-                {detail.ai_results[0].processing_time}s
+                Model: {aiResult.model_used} · Confidence:{" "}
+                {Math.round((aiResult.confidence_score ?? 0) * 100)}% ·{" "}
+                {aiResult.processing_time}s
+                {isVideo && aiResult.model_used === "opencv-dnn" && (
+                  <> · Full video colorized</>
+                )}
               </p>
             )}
-            {detail.explanations[0]?.text_explanation && (
+            {explanation?.text_explanation && (
               <p className="text-sm text-muted-foreground">
-                {detail.explanations[0].text_explanation}
+                {explanation.text_explanation}
               </p>
             )}
           </CardContent>
@@ -153,7 +199,8 @@ export default function HistoryPage() {
                 className="text-left hover:text-primary"
                 onClick={() => api.projects.get(p.id).then(setDetail)}
               >
-                {p.title} · {new Date(p.created_at).toLocaleString()}
+                {p.title} · {p.media_type} ·{" "}
+                {new Date(p.created_at).toLocaleString()}
               </button>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{p.status}</Badge>
