@@ -39,8 +39,15 @@ def _ensure_opencv_models() -> bool:
     caffemodel = settings.MODELS_DIR / "colorization_release_v2.caffemodel"
     pts = settings.MODELS_DIR / "pts_in_hull.npy"
     if not all(p.exists() for p in (prototxt, caffemodel, pts)):
-        logger.warning("OpenCV models missing. Run: python scripts/download_models.py")
-        return False
+        try:
+            from app.services.model_download import download_models
+
+            download_models(settings.MODELS_DIR)
+        except Exception as exc:
+            logger.warning("Could not download OpenCV models: %s", exc)
+        if not all(p.exists() for p in (prototxt, caffemodel, pts)):
+            logger.warning("OpenCV models missing. Run: python scripts/download_models.py")
+            return False
     net = cv2.dnn.readNetFromCaffe(str(prototxt), str(caffemodel))
     hull = np.load(str(pts)).transpose().reshape(2, 313, 1, 1)
     net.getLayer(net.getLayerId("class8_ab")).blobs = [hull.astype(np.float32)]

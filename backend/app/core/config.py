@@ -7,7 +7,8 @@ _ROOT = Path(__file__).resolve().parents[2]
 _DB = _ROOT / "recolnet.db"
 _ON_VERCEL = os.getenv("VERCEL") == "1"
 _UPLOAD_DEFAULT = Path("/tmp/uploads") if _ON_VERCEL else _ROOT / "uploads"
-_MODELS_DEFAULT = Path("/tmp/models") if _ON_VERCEL else _ROOT / "models"
+# Bundled at deploy time via scripts/download_models.py (see vercel.json installCommand)
+_MODELS_DEFAULT = _ROOT / "models"
 _DB_DEFAULT = "sqlite+aiosqlite:////tmp/recolnet.db" if _ON_VERCEL else f"sqlite+aiosqlite:///{_DB}"
 
 
