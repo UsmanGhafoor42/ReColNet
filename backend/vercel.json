@@ -1,16 +1,14 @@
 {
   "version": 2,
-  "installCommand": "pip install -r requirements.txt && python -c \"from app.services.model_download import download_models; download_models()\"",
   "builds": [
     {
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
-          "app/**",
-          "models/**"
+          "app/**"
         ],
-        "excludeFiles": "{.venv/**,uploads/**,recolnet.db}"
+        "excludeFiles": "{.venv/**,uploads/**,models/**,recolnet.db}"
       }
     }
   ],
@@ -22,6 +20,7 @@
   ],
   "env": {
     "DATABASE_URL": "sqlite+aiosqlite:////tmp/recolnet.db",
-    "UPLOAD_DIR": "/tmp/uploads"
+    "UPLOAD_DIR": "/tmp/uploads",
+    "MODELS_DIR": "/tmp/models"
   }
 }

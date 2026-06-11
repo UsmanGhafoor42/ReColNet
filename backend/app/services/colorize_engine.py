@@ -117,13 +117,12 @@ def _deoldify_colorize(src: Path, dst: Path) -> dict:
 def _pillow_grayscale_boost(src: Path, dst: Path) -> dict:
     Image = _pil()
     np = _np()
-    arr = np.array(Image.open(src).convert("L"))
-    color = Image.fromarray(
-        np.stack(
-            [arr, np.clip(arr * 1.05, 0, 255), np.clip(arr * 0.95, 0, 255)],
-            axis=-1,
-        ).astype(np.uint8)
-    )
+    arr = np.array(Image.open(src).convert("L")).astype(np.float32) / 255.0
+    # Warm cinematic tint from luminance (used when OpenCV models are unavailable)
+    r = np.clip(arr * 1.15 + 0.08, 0, 1)
+    g = np.clip(arr * 0.92, 0, 1)
+    b = np.clip(arr * 0.72 - 0.02, 0, 1)
+    color = Image.fromarray((255 * np.stack([r, g, b], axis=-1)).astype(np.uint8))
     color.save(dst)
     return {"engine": "fallback", "confidence": 0.45}
 
