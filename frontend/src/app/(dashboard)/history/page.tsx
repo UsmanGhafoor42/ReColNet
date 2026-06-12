@@ -171,8 +171,8 @@ export default function HistoryPage() {
                 </div>
                 <p className="mb-3 text-sm text-muted-foreground">
                   {isVideo
-                    ? "Full video colorization with CLAHE, saturation boost, and temporal smoothing. This may take several minutes."
-                    : "Applying enhanced OpenCV colorization pipeline."}
+                    ? "Full video colorization with OpenCV DNN. This may take several minutes."
+                    : "Applying OpenCV DNN colorization."}
                 </p>
                 <Progress className="animate-pulse" value={65} />
               </div>

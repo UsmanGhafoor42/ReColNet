@@ -76,7 +76,7 @@ const VideoPanel = forwardRef<HTMLVideoElement, VideoPanelProps>(
                 : "bg-muted text-muted-foreground"
             )}
           >
-            {isColorized ? "Enhanced" : "Source"}
+            {isColorized ? "Colorized" : "Source"}
           </span>
         </div>
 
@@ -175,7 +175,7 @@ export function VideoCompare({ originalSrc, colorizedSrc }: VideoCompareProps) {
           ref={colorizedRef}
           src={colorizedSrc}
           label="Colorized"
-          sublabel="AI enhanced output"
+          sublabel="AI colorized output"
           variant="colorized"
           muted={muted}
           onReady={() => setReady((r) => ({ ...r, colorized: true }))}
