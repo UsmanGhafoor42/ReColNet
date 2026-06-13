@@ -3,11 +3,14 @@
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 
+import { cn } from "@/lib/utils";
+
 type BeforeAfterSliderProps = {
   beforeSrc: string;
   afterSrc: string;
   altBefore: string;
   altAfter: string;
+  variant?: "default" | "hero" | "compact";
 };
 
 export function BeforeAfterSlider({
@@ -15,6 +18,7 @@ export function BeforeAfterSlider({
   afterSrc,
   altBefore,
   altAfter,
+  variant = "default",
 }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -28,11 +32,24 @@ export function BeforeAfterSlider({
     setPosition(Math.max(0, Math.min(100, raw)));
   }, []);
 
+  const isHero = variant === "hero";
+  const isCompact = variant === "compact";
+
   return (
-    <div className="mx-auto w-full max-w-3xl rounded-2xl border border-border/60 bg-muted/30 p-4 shadow-sm sm:p-6">
+    <div
+      className={cn(
+        "mx-auto w-full",
+        !isCompact && "premium-card p-3 sm:p-4",
+        isHero && "max-w-none",
+        !isHero && !isCompact && "max-w-3xl"
+      )}
+    >
       <div
         ref={containerRef}
-        className="relative mx-auto aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-xl bg-muted/40 select-none"
+        className={cn(
+          "relative mx-auto w-full overflow-hidden rounded-2xl bg-neutral-100 select-none dark:bg-neutral-900",
+          isHero ? "aspect-[4/3] max-h-[520px]" : isCompact ? "aspect-video" : "aspect-[4/3] max-w-2xl"
+        )}
         onPointerDown={(e) => {
           e.preventDefault();
           updateFromClientX(e.clientX);
@@ -58,18 +75,16 @@ export function BeforeAfterSlider({
         }}
         style={{ touchAction: "none", cursor: isDragging ? "grabbing" : "ew-resize" }}
       >
-        {/* Colorized — full frame, always aligned */}
         <Image
           src={afterSrc}
           alt={altAfter}
           fill
-          priority
+          priority={isHero}
           className="pointer-events-none object-cover object-center"
           draggable={false}
-          sizes="(min-width: 768px) 672px, 90vw"
+          sizes="(min-width: 1024px) 560px, 90vw"
         />
 
-        {/* Grayscale — same frame, clipped to left of handle */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
@@ -80,21 +95,32 @@ export function BeforeAfterSlider({
             fill
             className="object-cover object-center"
             draggable={false}
-            sizes="(min-width: 768px) 672px, 90vw"
+            sizes="(min-width: 1024px) 560px, 90vw"
           />
         </div>
 
-        {/* Divider + handle */}
         <div
-          className="pointer-events-none absolute bottom-0 top-0 z-10 w-px bg-white"
+          className="pointer-events-none absolute bottom-0 top-0 z-10 w-px bg-white/90"
           style={{ left: `${position}%`, transform: "translateX(-50%)" }}
         >
           <div
-            className={`absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white/95 shadow-md transition-transform ${
-              isDragging ? "scale-110" : "scale-100"
-            }`}
+            className={cn(
+              "absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white shadow-md transition-transform",
+              isDragging && "scale-110"
+            )}
           />
         </div>
+
+        {!isCompact && (
+          <>
+            <span className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white">
+              Before
+            </span>
+            <span className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white">
+              After
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

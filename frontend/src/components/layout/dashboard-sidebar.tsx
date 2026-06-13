@@ -27,7 +27,7 @@ export function DashboardSidebar() {
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
               pathname === href
-                ? "bg-primary/15 text-primary font-semibold"
+                ? "bg-brand/10 font-medium text-brand"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

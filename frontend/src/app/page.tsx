@@ -1,53 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import {
-  Brain,
-  Film,
-  Layers,
-  ImageIcon,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { Check, Film, ImageIcon, Sparkles, Zap } from "lucide-react";
 
+import { BeforeAfterSlider } from "@/components/home/before-after-slider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BeforeAfterSlider } from "@/components/home/before-after-slider";
+import { cn } from "@/lib/utils";
+
+const trustItems = [
+  "AI powered",
+  "Fast processing",
+  "High resolution",
+  "Privacy first",
+];
 
 const features = [
   {
+    icon: Sparkles,
+    title: "Smart color prediction",
+    description:
+      "AI identifies faces, clothing, skies, vegetation, and architecture to apply realistic colors.",
+  },
+  {
     icon: ImageIcon,
-    title: "Image Colorization",
+    title: "Historical restoration",
     description:
-      "Upload grayscale photos and restore vivid, realistic color with DeOldify and Stable Diffusion ControlNet.",
+      "Restore family memories and archive photos in seconds with natural, believable tones.",
   },
   {
-    icon: Film,
-    title: "Video Colorization",
+    icon: Zap,
+    title: "High resolution output",
     description:
-      "Bring archival film and monochrome footage to life with frame-by-frame AI processing.",
-  },
-  {
-    icon: Brain,
-    title: "Explainable AI",
-    description:
-      "Confidence scores, attention heatmaps, and natural-language explanations for every color choice.",
-  },
-  {
-    icon: Layers,
-    title: "Project Workspace",
-    description:
-      "Save results, track history, reprocess files, and download outputs from one dashboard.",
+      "Download sharp, detailed colorized images ready for printing or sharing.",
   },
 ];
 
@@ -57,76 +49,141 @@ export default function HomePage() {
       <SiteHeader />
 
       <main>
-        <section className="relative overflow-hidden px-4 pb-20 pt-14 sm:pt-20">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.67_0.2_282/0.18),transparent_55%)]" />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]"
-          >
-            <div className="text-center lg:text-left">
-              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-sm text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
-                Professional AI Colorization Studio
-              </span>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-                Bring grayscale images and video to{" "}
-                <span className="bg-linear-to-r from-primary to-violet-400 bg-clip-text text-transparent">
-                  cinematic color
-                </span>
+        {/* Hero */}
+        <section className="px-4 pb-16 pt-12 sm:pb-24 sm:pt-16">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center lg:text-left"
+            >
+              <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-[3.25rem]">
+                Bring black &amp; white photos back to life
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground lg:mx-0">
-                ReColNet helps you colorize archive media with explainable AI,
-                project history, and downloadable outputs in one responsive workspace.
+              <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground lg:mx-0">
+                Transform old grayscale images into realistic color photographs
+                using advanced AI restoration technology.
               </p>
-              <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
-                <Link href="/upload" className={cn(buttonVariants({ size: "lg" }), "rounded-full px-7")}>
-                  Start Colorizing
+              <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+                <Link
+                  href="/upload"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "rounded-full px-8",
+                  )}
+                >
+                  Upload Photo
                 </Link>
                 <Link
-                  href="#features"
-                  className={cn(buttonVariants({ size: "lg", variant: "outline" }), "rounded-full px-7")}
+                  href="#demo"
+                  className={cn(
+                    buttonVariants({ size: "lg", variant: "outline" }),
+                    "rounded-full px-8",
+                  )}
                 >
-                  Explore Features
+                  See examples
                 </Link>
               </div>
-            </div>
-            <div className="relative mx-auto flex w-full max-w-lg items-center justify-center rounded-3xl border border-border/70 bg-card/75 p-8 backdrop-blur">
-              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-linear-to-br from-primary/10 via-transparent to-violet-500/10" />
-              <Image
-                src="/Recolnet%20Logo/Recolnet_Logo.png"
-                alt="ReColNet logo"
-                width={460}
-                height={180}
-                priority
-                className="relative h-auto w-full"
+
+              <ul className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-3 lg:justify-start">
+                {trustItems.map((label) => (
+                  <li
+                    key={label}
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                  >
+                    <Check className="h-4 w-4 text-brand" strokeWidth={2.5} />
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              id="demo"
+            >
+              <BeforeAfterSlider
+                beforeSrc="/before%26after/gray_image.webp"
+                afterSrc="/before%26after/colorized_image.png"
+                altBefore="Desert landscape in grayscale"
+                altAfter="Desert landscape colorized"
+                variant="hero"
               />
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </section>
 
-        <section id="features" className="border-t border-border/60 px-4 py-20">
+        {/* Examples */}
+        <section className="border-t border-border px-4 py-20">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-center text-3xl font-bold">Core capabilities</h2>
-            <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              Built for studios, archivists, and digital artists who need
-              trustworthy, explainable colorization.
-            </p>
-            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold">Real colorization results</h2>
+              <p className="mt-3 text-muted-foreground">
+                Drag each slider to compare before and after. Trust comes from
+                seeing realistic output — not marketing copy.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-8 sm:grid-cols-2">
+              {[
+                {
+                  title: "Landscapes",
+                  before: "/before%26after/lanscape.avif",
+                  after: "/before%26after/lanscape-colorized.png",
+                  alt: "Landscape",
+                },
+                {
+                  title: "Historical photos",
+                  before: "/before%26after/historicalPlace.jpg",
+                  after: "/before%26after/historicalPlace-colorized.png",
+                  alt: "Historical place",
+                },
+              ].map((ex) => (
+                <div key={ex.title}>
+                  <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                    {ex.title}
+                  </h3>
+                  <BeforeAfterSlider
+                    beforeSrc={ex.before}
+                    afterSrc={ex.after}
+                    altBefore={`${ex.alt} — before`}
+                    altAfter={`${ex.alt} — after`}
+                    variant="compact"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="border-t border-border px-4 py-20">
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold">Built for real restoration</h2>
+              <p className="mt-3 text-muted-foreground">
+                Premium colorization for portraits, archives, and family
+                memories — not oversaturated AI effects.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-3">
               {features.map((f, i) => (
                 <motion.div
                   key={f.title}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
+                  transition={{ delay: i * 0.08 }}
                 >
-                  <Card className="h-full rounded-2xl border-border/70 bg-card/70 backdrop-blur">
+                  <Card className="premium-card h-full border-border bg-card">
                     <CardHeader>
-                      <f.icon className="mb-2 h-8 w-8 text-primary" />
-                      <CardTitle>{f.title}</CardTitle>
-                      <CardDescription>{f.description}</CardDescription>
+                      <f.icon className="mb-2 h-6 w-6 text-brand" />
+                      <CardTitle className="text-lg">{f.title}</CardTitle>
+                      <CardDescription className="leading-relaxed">
+                        {f.description}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 </motion.div>
@@ -135,36 +192,73 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="demo" className="border-t border-border/60 px-4 py-20">
-          <div className="mx-auto max-w-6xl text-center">
-            <h2 className="text-3xl font-bold">Before & after</h2>
-            <p className="mt-3 text-muted-foreground">
-              Upload grayscale content and track processing in real-time from your dashboard.
-            </p>
-            <div className="mt-10">
+        {/* Video */}
+        <section className="border-t border-border bg-muted/40 px-4 py-20">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+                <Film className="h-3.5 w-3.5 text-brand" />
+                Video colorization
+              </div>
+              <h2 className="text-3xl font-bold">Colorize video footage</h2>
+              <p className="mt-3 leading-relaxed text-muted-foreground">
+                Upload grayscale clips and get full-frame colorized video with
+                synced playback, download, and reprocess — a rare capability
+                among colorization tools.
+              </p>
+              <Link
+                href="/upload"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "mt-6 rounded-full",
+                )}
+              >
+                Try video upload
+              </Link>
+            </div>
+            <div className="premium-card overflow-hidden p-2">
               <BeforeAfterSlider
-                beforeSrc="/before%26after/gray_image.webp"
-                afterSrc="/before%26after/colorized_image.png"
-                altBefore="Desert landscape in grayscale"
-                altAfter="Desert landscape colorized"
+                beforeSrc="/before%26after/bird.avif"
+                afterSrc="/before%26after/bird_colorized.png"
+                altBefore="Bird in grayscale"
+                altAfter="Bird colorized"
+                variant="compact"
               />
+              <p className="px-3 pb-2 pt-1 text-center text-xs text-muted-foreground">
+                Drag the slider to compare — same workflow for photos and video
+              </p>
             </div>
           </div>
         </section>
 
-        <section id="contact" className="border-t border-border/60 px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold">Get in touch</h2>
-            <p className="mt-2 text-muted-foreground">
-              Built for modern colorization workflows with reliable, explainable AI.
+        {/* CTA */}
+        <section className="border-t border-border px-4 py-20">
+          <div className="premium-card mx-auto max-w-3xl px-6 py-12 text-center sm:px-10">
+            <h2 className="text-2xl font-bold sm:text-3xl">
+              Ready to restore your memories?
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
+              Upload a grayscale photo or video and see realistic color in
+              seconds. Your files stay private to your workspace.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
-              <Zap className="h-4 w-4 text-primary" />
-              ReColNet Team
-            </div>
+            <Link
+              href="/upload"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "mt-8 rounded-full px-8",
+              )}
+            >
+              Upload Photo
+            </Link>
           </div>
         </section>
       </main>
+
+      <footer className="border-t border-border px-4 py-8">
+        <p className="text-center text-sm text-muted-foreground">
+          ReColNet — AI image &amp; video colorization
+        </p>
+      </footer>
     </div>
   );
 }

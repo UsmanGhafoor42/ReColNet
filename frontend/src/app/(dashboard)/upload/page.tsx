@@ -50,13 +50,13 @@ export default function UploadPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="rounded-2xl border border-border/70 bg-card/70 p-6">
+      <div className="premium-card p-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Upload Media</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Upload grayscale image or video to start AI colorization.
         </p>
       </div>
-      <Card className="rounded-2xl">
+      <Card className="premium-card">
         <CardHeader><CardTitle>Source: {mediaType === "image" ? "Image" : "Video"}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">

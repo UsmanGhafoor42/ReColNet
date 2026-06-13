@@ -22,18 +22,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-border/70 bg-card/70 p-6">
+      <div className="premium-card p-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Dashboard Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Monitor project volume, completion rates, and recent colorization jobs.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">Projects</p><CardTitle className="text-3xl">{projects.length}</CardTitle></CardHeader></Card>
-        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">Completed</p><CardTitle className="text-3xl">{done}</CardTitle></CardHeader></Card>
-        <Card className="rounded-2xl"><CardHeader><p className="text-sm text-muted-foreground">In progress</p><CardTitle className="text-3xl">{projects.length - done}</CardTitle></CardHeader></Card>
+        <Card className="premium-card"><CardHeader><p className="text-sm text-muted-foreground">Projects</p><CardTitle className="text-3xl">{projects.length}</CardTitle></CardHeader></Card>
+        <Card className="premium-card"><CardHeader><p className="text-sm text-muted-foreground">Completed</p><CardTitle className="text-3xl">{done}</CardTitle></CardHeader></Card>
+        <Card className="premium-card"><CardHeader><p className="text-sm text-muted-foreground">In progress</p><CardTitle className="text-3xl">{projects.length - done}</CardTitle></CardHeader></Card>
       </div>
-      <Card className="rounded-2xl">
+      <Card className="premium-card">
         <CardHeader className="flex flex-row justify-between">
           <CardTitle>Recent</CardTitle>
           <Link href="/upload" className={cn(buttonVariants(), "rounded-full")}><Upload className="mr-2 inline h-4 w-4" />Upload</Link>
