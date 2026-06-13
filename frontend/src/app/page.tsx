@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Film, ImageIcon, Sparkles, Zap } from "lucide-react";
 
 import { BeforeAfterSlider } from "@/components/home/before-after-slider";
+import { TeamSection } from "@/components/home/team-section";
 import { SiteHeader } from "@/components/layout/site-header";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -230,6 +231,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <TeamSection />
 
         {/* CTA */}
         <section className="border-t border-border px-4 py-20">
